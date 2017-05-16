@@ -272,7 +272,7 @@ void deleteRecipe()
 
 	viewAllRecipe(fileName, &showDataCreateFile);
 
-	FILE* file = fopen(fileName, "wb");
+	FILE* file = fopen(fileName, "rb");
 
 	if (file == NULL)
 	{

@@ -1,4 +1,4 @@
-﻿#include <stdio.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <Windows.h>
@@ -164,44 +164,47 @@ void viewAllRecipe(char* fileName, bool* showDataCreateFile)
 			}
 		} while (FindNextFileA(findResult, &found));
 
-		char** arrayFileName = calloc(countFile, sizeof(char*));
+		if (countFile != 0)
+		{
+			char** arrayFileName = calloc(countFile, sizeof(char*));
 
-		findResult = FindFirstFileA("d:\\recipe\\*.recipe", &found);
-
-		countFile = 0;
-		do
-		{
-			if (found.nFileSizeLow != NULL)
-			{
-				arrayFileName[countFile] = calloc(100, sizeof(char));
-				strcpy(*(arrayFileName + countFile), found.cFileName);
-				countFile = countFile + 1;
-			}
-		} while (FindNextFileA(findResult, &found));
-	
-		do
-		{
-			printf("Enter the number of file name: ");
-			scanf("%i", &numberOfFile);
-		} while (numberOfFile < 1 || numberOfFile > countFile);
-		cleanInput();
-		
-		strcat(fileName, arrayFileName[numberOfFile - 1]);
-				
-		if (*showDataCreateFile == true)
-		{
-			printf("_______________VIEW FILE %s_______________\n", fileName);
 			findResult = FindFirstFileA("d:\\recipe\\*.recipe", &found);
+
+			countFile = 0;
 			do
 			{
-				if (strcmp(found.cFileName, arrayFileName[numberOfFile - 1]) == 0)
+				if (found.nFileSizeLow != NULL)
 				{
-					SYSTEMTIME time;
-					FileTimeToSystemTime(&found.ftLastAccessTime, &time);
-					printf("\nThe creation date of the recipe: ");
-					printf("[%d.%d.%d]\n", time.wDay, time.wMonth, time.wYear);
+					arrayFileName[countFile] = calloc(100, sizeof(char));
+					strcpy(*(arrayFileName + countFile), found.cFileName);
+					countFile = countFile + 1;
 				}
 			} while (FindNextFileA(findResult, &found));
+
+			do
+			{
+				printf("Enter the number of file name: ");
+				scanf("%i", &numberOfFile);
+			} while (numberOfFile < 1 || numberOfFile > countFile);
+			cleanInput();
+
+			strcat(fileName, arrayFileName[numberOfFile - 1]);
+
+			if (*showDataCreateFile == true)
+			{
+				printf("_______________VIEW FILE %s_______________", fileName);
+				findResult = FindFirstFileA("d:\\recipe\\*.recipe", &found);
+				do
+				{
+					if (strcmp(found.cFileName, arrayFileName[numberOfFile - 1]) == 0)
+					{
+						SYSTEMTIME time;
+						FileTimeToSystemTime(&found.ftLastAccessTime, &time);
+						printf("\nThe creation date of the recipe: ");
+						printf("[%d.%d.%d]\n", time.wDay, time.wMonth, time.wYear);
+					}
+				} while (FindNextFileA(findResult, &found));
+			}
 		}
 	}
 	FindClose(findResult);
@@ -219,7 +222,8 @@ void viewRecipe()
 
 	if (file == NULL)
 	{
-		printf("This file is not found");
+		printf("File is not found\n");
+		return 1;
 	}
 	else
 	{
@@ -244,14 +248,14 @@ void editRecipe()
 
 	FILE* file = fopen(fileName, "rb");
 
-	printf("_______________EDIT FILE %s_______________\n", fileName);
-
 	if (file == NULL)
 	{
-		printf("This file is not found");
+		printf("File is not found\n");
+		return 1;
 	}
 	else
 	{
+		printf("_______________EDIT FILE %s_______________\n", fileName);
 		fread(&recipe, sizeof(struct Recipe), 1, file);
 		memset(recipe.Text, 0, TEXT_SIZE);
 		printf("Enter the text of recipe: ");
@@ -272,14 +276,16 @@ void deleteRecipe()
 
 	viewAllRecipe(fileName, &showDataCreateFile);
 
-	FILE* file = fopen(fileName, "rb");
+	FILE* file = fopen(fileName, "wb");
 
 	if (file == NULL)
 	{
-		printf("This file is not found");
+		printf("File is not found\n");
+		return 1;
 	}
 	else
 	{
+		printf("_______________DELETE FILE %s_______________\n", fileName);
 		fclose(file);
 		unsigned int rc = remove(fileName);
 		if (rc)
